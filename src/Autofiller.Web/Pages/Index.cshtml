@@ -1,0 +1,74 @@
+﻿@page
+@using Autofiller.Data.Models;
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+@section scripts{
+    <script>
+        function RemoveFromQueue(appid) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("RemoveFromQueue","Home")',
+                data:
+                {
+                    appid: appid
+                },
+                dataType: 'json',
+                success: function (result) {
+                    alert(result.message);
+                }
+            });
+        }
+
+        function openSteamStore(id) {
+            window.open("https://store.steampowered.com/app/" + id, "_blank").focus();
+        }
+    </script>
+}
+
+<div class="text-center">
+    <h1>
+        Current Queue:
+    </h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <td>
+                    AppId
+                </td>
+                <td>
+                    Name
+                </td>
+                <td>
+                    Queued Time
+                </td>
+                <td>
+                    Actions
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var app in DataManager.Instance.Queue.Data)
+            {
+                <tr>
+                    <td>
+                        <label>@app.AppId</label>
+                    </td>
+                    <td>
+                        <label>@app.Name</label>
+                    </td>
+                    <td>
+                        <label>@app.QueuedTime</label>
+                    </td>
+                    <td>
+                        <button class="btn btn-info" onclick="RemoveFromQueue(@app.AppId)">➖</button>
+                        <button class="btn btn-success" onclick="openSteamStore(@app.AppId)">🔗</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <textarea style="width:100%;height:520px;background-color:InactiveCaption" readonly="readonly">@DataManager.Instance.SteamWrapper.CurrentOutput</textarea>
+</div>

@@ -1,0 +1,90 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@using Autofiller.Data.Models;
+@{
+}
+
+@section scripts{
+    <script>
+        function AuthenticateUser(username, password, guard) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("AuthenticateUser", "Settings")',
+                data:
+                {
+                    Username: username,
+                    Password: password,
+                    Guard: guard
+                },
+                dataType: 'json',
+                success: function (result) {
+                    alert(result.message);
+                }
+            })
+        }
+    </script>
+}
+
+<div class="text-center">
+    <table class="table">
+        <thead>
+            <tr>
+                <td colspan="2" align="left">
+                    <h2>
+                        Settings
+                    </h2>
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td rowspan="4">Authenticate User</td>
+                <td>
+                    <div class="col-auto">
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">Username</div>
+                            </div>
+                            <input type="text" class="form-control" id="AuthenticateUser_Username" />
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="col-auto">
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">Password</div>
+                            </div>
+                            <input type="password" class="form-control" id="AuthenticateUser_Password" />
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="col-auto">
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">Steamguard</div>
+                            </div>
+                            <input type="text" class="form-control" id="AuthenticateUser_Guard" />
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="Button" class="btn btn-info form-control" value="Authenticate" onclick="AuthenticateUser(document.getElementById('AuthenticateUser_Username').value,document.getElementById('AuthenticateUser_Password').value,document.getElementById('AuthenticateUser_Guard').value)" /></td>
+            </tr>
+            <tr>
+                <td>DownloadPath</td>
+                <td>
+                    <input type="text" name="DownloadPath" value="@DataManager.Instance.Settings.DownloadDirectory" class="form-control"/>
+                    <button class="btn btn-info form-control">Save</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,45 @@
+﻿@page 
+@model Autofiller.Web.Pages.AppSearchModel
+@{
+}
+
+<div class="text-center">
+    <h1>AppSearch</h1>
+    <form asp-controller="AppSearch" asp-action="Index">
+        <p>
+            Search: <input type="text" name="querystring"/>
+            <input type="submit" value="Search" />
+        </p>
+    </form>
+    <table class="table">
+        <thead>
+            <tr>
+                <td>
+                    AppId
+                </td>
+                <td>
+                    Name
+                </td>
+                <td>
+                    Actions
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var app in Model.AppList.Data)
+            {
+            <tr>
+                <td>
+                    @Html.Raw(app.AppId)
+                </td>
+                <td>
+                    @Html.Raw(app.Name)
+                </td>
+                <td>
+                    Coming Soon
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>

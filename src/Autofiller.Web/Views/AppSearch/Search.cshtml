@@ -1,0 +1,76 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = $"AppSearch";
+}
+
+@section scripts{
+    <script>
+        function AddToQueue(appid) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("AddToQueue","AppSearch")',
+                data:
+                {
+                    appid: appid
+                },
+                dataType: 'json',
+                success: function (result) {
+                    alert(result.message);
+                }
+            });
+        }
+
+        function openSteamStore(id) {
+            window.open("https://store.steampowered.com/app/" + id, "_blank").focus();
+        }
+    </script>
+}
+
+<div class="text-center">
+    <h2>AppSearch</h2>
+    <form asp-controller="AppSearch" asp-action="Search">
+        <div class="col-auto">
+            <div class="input-group mb-2">
+                <div class="input-group-prepend">
+                    <div class="input-group-text">Name/Id</div>
+                </div>
+                <input type="text" name="searchquery" class="form-control" />
+                <input type="submit" value="Search" class="btn btn-info" />
+            </div>
+        </div>
+    </form>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <td>
+                AppId
+            </td>
+            <td>
+                Name
+            </td>
+            <td>
+                Actions
+            </td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var app in Model)
+        {
+            <tr>
+                <td>
+                    @Html.Raw(app.AppId)
+                </td>
+                <td>
+                    @Html.Raw(app.Name)
+                </td>
+                <td>
+                    <button class="btn btn-info" onclick="AddToQueue(@app.AppId)">➕</button>
+                    <button class="btn btn-success" onclick="openSteamStore(@app.AppId)">🔗</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
