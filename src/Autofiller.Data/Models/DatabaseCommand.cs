@@ -1,32 +1,74 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using Autofiller.Data.Models.Database;
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Autofiller.Data.Models
 {
     public class DatabaseCommand
     {
-        private SqliteConnection _connection;
-        private SqliteCommand _cmd;
-        private SqliteTransaction _transaction;
-        private string _table;
+        #region Private Fields
 
-        public object Result { get; set; }
+        private readonly SqliteConnection _connection;
+        private string _table;
+        private SqliteTransaction _transaction;
+
+        #endregion Private Fields
+
+        #region Public Constructors
+
         public DatabaseCommand(SqliteConnection connection)
         {
             _connection = connection;
         }
+
+        #endregion Public Constructors
+
+        #region Public Properties
+
+        public object Result { get; set; }
+
+        #endregion Public Properties
+
+        #region Public Methods
 
         public static DatabaseCommand Init(SqliteConnection connection)
         {
             return new DatabaseCommand(connection);
         }
 
-        public DatabaseCommand OpenDatabase()
+        public DatabaseCommand GetQueryStringForTable<IDatabaseTable>(IDatabaseTable database)
         {
-            _connection.Open();
+            return this;
+        }
+        public DatabaseCommand GetQueryStringForTable<Tsource>(IDatabaseTable<Tsource> database) 
+        {
+
+            return this;
+        }
+
+        public DatabaseCommand AddObject<T>(T obj)
+        {
+            Dictionary<string, string> keyValuePairs = new Dictionary<string, string>();
+            foreach (var property in obj.GetType().GetProperties())
+            {
+                if (property.Name != "Table")
+                    keyValuePairs.Add(property.Name, property.GetValue(obj).ToString());
+            }
+            var command = _connection.CreateCommand();
+            command.CommandText =
+                @$"     INSERT INTO {_table}
+                        ({string.Join(",", keyValuePairs.Keys.ToList())}) VALUES (${string.Join(",$", keyValuePairs.Keys.ToList())})
+                  ";
+
+            foreach (var key in keyValuePairs.Keys)
+            {
+                var parameter = new SqliteParameter() { ParameterName = key, Value = keyValuePairs[key] };
+                command.Parameters.Add(parameter);
+            }
+
+            command.ExecuteNonQuery();
             return this;
         }
 
@@ -44,58 +86,19 @@ namespace Autofiller.Data.Models
             return this;
         }
 
-        internal DatabaseCommand SaveTable<T>(List<T> data)
+        public DatabaseCommand Execute()
         {
-            ClearTable();
-            BeginTransaction();
-
-            foreach(var obj in data)
+            if (_transaction != null)
             {
-                AddObject(obj);
+                _transaction.Commit();
+                _transaction.Dispose();
+                _transaction = null;
             }
+
+            _connection.Close();
             return this;
         }
 
-        public DatabaseCommand AddObject<T>(T obj)
-        {
-            Dictionary<string, string> keyValuePairs = new Dictionary<string, string>();
-            foreach(var property in obj.GetType().GetProperties())
-            {
-                if(property.Name != "Table")
-                    keyValuePairs.Add(property.Name, property.GetValue(obj).ToString());
-            }
-            var command = _connection.CreateCommand();
-            command.CommandText =
-                @$"     INSERT INTO {_table}
-                        ({string.Join(",", keyValuePairs.Keys.ToList())}) VALUES (${string.Join(",$", keyValuePairs.Keys.ToList())})
-                  ";
-
-            foreach(var key in keyValuePairs.Keys)
-            {
-                var parameter = new SqliteParameter() { ParameterName = key, Value=keyValuePairs[key] };
-                command.Parameters.Add(parameter);
-            }
-
-            command.ExecuteNonQuery();
-            return this;
-        }
-
-        public DatabaseCommand SelectTable(string table)
-        {
-            _table = table;
-            return this;
-        }
-        public DatabaseCommand UpdateValue(string column, string value, string where)
-        {
-            if(_transaction == null)
-            {
-                _transaction = _connection.BeginTransaction();
-            }
-            var command = _connection.CreateCommand();
-            command.CommandText = $"UPDATE {_table} SET {column} = \"{value}\" {where}";
-            command.ExecuteNonQuery();
-            return this;
-        }
         public DatabaseCommand GetObjects<T>(string query)
         {
             var result = new List<T>();
@@ -103,7 +106,7 @@ namespace Autofiller.Data.Models
             command.CommandText = query;
             using (var reader = command.ExecuteReader())
             {
-                while(reader.Read())
+                while (reader.Read())
                 {
                     var newObject = Activator.CreateInstance<T>();
                     foreach (var property in newObject.GetType().GetProperties())
@@ -118,15 +121,64 @@ namespace Autofiller.Data.Models
             Result = result;
             return this;
         }
-        public DatabaseCommand Execute()
-        {
-            if(_transaction != null)
-            {
-                _transaction.Commit();
-            }
 
-            _connection.Close();
+        public DatabaseCommand OpenDatabase()
+        {
+            _connection.Open();
             return this;
         }
+        public DatabaseCommand SelectTable(string table)
+        {
+            _table = table;
+            return this;
+        }
+
+        public DatabaseCommand UpdateValue(string column, string value, string where)
+        {
+            if (_transaction == null)
+            {
+                _transaction = _connection.BeginTransaction();
+            }
+            var command = _connection.CreateCommand();
+            command.CommandText = $"UPDATE {_table} SET {column} = \"{value}\" {where}";
+            command.ExecuteNonQuery();
+            return this;
+        }
+
+        #endregion Public Methods
+
+        #region Internal Methods
+
+        internal DatabaseCommand SaveTable<T>(List<T> data)
+        {
+            ClearTable();
+            BeginTransaction();
+
+
+            var properties = new List<string>();
+            typeof(T).GetProperties().ToList().ForEach(property => { if(property.Name != "Table") properties.Add(property.Name); });
+            var command = _connection.CreateCommand();
+            command.CommandText =
+               @$"     INSERT INTO {_table}
+                        ({string.Join(",", properties)}) VALUES (${string.Join(",$", properties)})
+                  ";
+
+            foreach(var parameter in properties)
+            {
+                command.Parameters.AddWithValue($"${parameter}", "");
+            }
+
+            foreach (var obj in data)
+            {
+                foreach (var parameter in properties)
+                {
+                    command.Parameters[$"${parameter}"].Value = obj.GetType().GetProperty(parameter).GetValue(obj);
+                }
+                command.ExecuteNonQuery();
+            }
+            return this;
+        }
+
+        #endregion Internal Methods
     }
 }

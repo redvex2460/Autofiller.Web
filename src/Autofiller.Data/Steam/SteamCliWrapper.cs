@@ -1,5 +1,6 @@
 ﻿using Autofiller.Data.Models;
 using Autofiller.Data.Models.Database;
+using Autofiller.Data.Steam.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -9,6 +10,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Autofiller.Data.Steam
@@ -32,7 +34,7 @@ namespace Autofiller.Data.Steam
 
         public string CurrentOutput { get; set; }
         public DataManager DataManager { get; set; }
-        public Process DownloadProcess { get; set; }
+        public DownloadManager DownloadManager { get; set; }
         public string ScriptDirectory { get; set; }
         public string ScriptPath { get; set; }
 
@@ -57,7 +59,7 @@ namespace Autofiller.Data.Steam
                 result.message += "No Authorised Steam accounts, please navigate to Settings and authorise an account.\n";
                 result.message += "Thanks.\n";
             }
-            var users = DataManager.AuthorisedUsers.Data;
+            var users = DataManager.AuthorisedUsers.Data.ToList();
             foreach (var account in users)
             {
                 var steamCommand = SteamCommand.Init()
@@ -125,7 +127,7 @@ namespace Autofiller.Data.Steam
 
         internal void Initialise()
         {
-            var command = SteamCommand.Init().Install();
+            SteamCommand.Init().Install();
         }
 
         #endregion Internal Methods
@@ -136,36 +138,41 @@ namespace Autofiller.Data.Steam
         {
             CurrentOutput += "Deleting Downloaded files now...\n";
             if (Directory.Exists(DataManager.Settings.DownloadDirectory))
-                Directory.Delete(DataManager.Settings.DownloadDirectory, true);
+                try
+                {
+                    Directory.Delete(DataManager.Settings.DownloadDirectory, true);
+                }
+                catch(Exception ex)
+                {
+
+                }
             if (!Directory.Exists(DataManager.Settings.DownloadDirectory))
                 CurrentOutput += "Deleted Downloaded files.\n";
         }
 
         private Task Download()
         {
-            CurrentOutput += CheckAuthorisedUsers().message;
-            foreach (var app in DataManager.Queue.Data.Where(item => item.Status == DownloadStatus.Queued).ToList())
+            CheckAuthorisedUsers();
+            var downloadList = DataManager.Queue.Data.Where(item => item.Status == DownloadStatus.Queued).ToList();
+            var users = DataManager.AuthorisedUsers.Data.ToList();
+            foreach (var app in downloadList)
             {
-                foreach (var user in DataManager.AuthorisedUsers.Data)
+                foreach (var user in users)
                 {
-                    CurrentOutput += $"Try to download {app.Name} via {user.UserName}\n";
+                    DownloadManager = new DownloadManager(app, user);
+                    DownloadManager.StartDownload();
 
-                    var steamCommand = SteamCommand.Init()
-                                       .Login(user.UserName)
-                                       .SetPlatform(Enum.Parse<SteamPlatforms>(app.Platform))
-                                       .SetDirectory(DataManager.Settings.DownloadDirectory)
-                                       .Update(app.AppId)
-                                       .Execute();
+                    //if (DownloadMa.ExitCode != 0)
+                    //{
+                    //    CurrentOutput += "Download Failed\n";
+                    //    continue;
+                    //}
 
-                    if (!steamCommand.Result)
-                    {
-                        CurrentOutput += "Download Failed\n";
-                        continue;
-                    }
-
-                    CurrentOutput += "Download finished\n";
+                    //CurrentOutput += "Download finished\n";
+                    DownloadManager = null;
                     DataManager.Queue.Data.Find(item => item.AppId == app.AppId).Status = DownloadStatus.Completed;
                     DataManager.Queue.Data.Find(item => item.AppId == app.AppId).Update();
+                    Thread.Sleep(5000);
                     DeleteDownloadedFiles();
                 }
             }

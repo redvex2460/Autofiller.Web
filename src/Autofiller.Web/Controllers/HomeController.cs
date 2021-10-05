@@ -9,7 +9,7 @@ namespace Autofiller.Web.Controllers
 {
     public class HomeController : Controller
     {
-        DataManager dataManager => DataManager.Instance;
+        DataManager DataManager => DataManager.Instance;
         public IActionResult Index()
         {
             return View();
@@ -19,12 +19,12 @@ namespace Autofiller.Web.Controllers
         public JsonResult RemoveFromQueue(long appid)
         {
             string Response = "";
-            if (dataManager.Apps.Data.Find(app => app.AppId == appid) == null)
+            if (DataManager.Apps.Data.Find(app => app.AppId == appid) == null)
             {
                 Console.WriteLine($"Steam App with ID {appid} not found.");
                 Response = $"Steam App with ID {appid} not found.";
             }
-                var queueItem = dataManager.Queue.Data.Find(app => app.AppId == appid);
+                var queueItem = DataManager.Queue.Data.Find(app => app.AppId == appid);
 
             if (queueItem == null)
             {
@@ -33,8 +33,8 @@ namespace Autofiller.Web.Controllers
             }
             else
             {
-                var app = dataManager.Queue.Data.Find(item => item.AppId == appid);
-                dataManager.Queue.Remove(app);
+                var app = DataManager.Queue.Data.Find(item => item.AppId == appid);
+                DataManager.Queue.Remove(app);
 
                 Response = $"Removed Steam App {app.Name} with ID {app.AppId} for {app.Platform} from download queue.";
             }
@@ -45,6 +45,14 @@ namespace Autofiller.Web.Controllers
         public JsonResult StartDownload()
         {
             return Json(new { message = DataManager.Instance.SteamWrapper.StartDownload() });
+        }
+
+        public JsonResult GetDownloadProgress()
+        {
+            var dlmgr = DataManager.SteamWrapper.DownloadManager;
+            if (dlmgr == null)
+                return Json(new { game = "", action = "", progress = 0 });
+            return Json(new { game = dlmgr.Game, action = dlmgr.Action, progress = dlmgr.Progress });
         }
     }
 }

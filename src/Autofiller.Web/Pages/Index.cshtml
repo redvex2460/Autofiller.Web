@@ -7,6 +7,10 @@
 
 @section scripts{
     <script>
+        var Action = "Prealocating/Downloading/Verifying";
+        var Game = "Gamename";
+        var Progress = "0";
+
         function RemoveFromQueue(appid) {
             $.ajax({
                 type: "POST",
@@ -25,6 +29,21 @@
         function openSteamStore(id) {
             window.open("https://store.steampowered.com/app/" + id, "_blank").focus();
         }
+
+        function GetDownloadProgress() {
+            $.ajax({
+                url: '@Url.Action("GetDownloadProgress", "Home")',
+                Action: "GET",
+                success: function (response) {
+                    var progressbar = document.getElementById("DownloadBar");
+                    progressbar.setAttribute("aria-valuenow", response.progress);
+                    progressbar.style.width = response.progress+"%";
+                    progressbar.innerHTML = `${response.action} ${response.game}: ${response.progress}`;
+                }
+            })
+        }
+
+        setInterval(GetDownloadProgress, 3000);
     </script>
 }
 
@@ -32,6 +51,9 @@
     <h1>
         Current Queue:
     </h1>
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" id="DownloadBar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+    </div>
     <table class="table table-striped">
         <thead>
             <tr>
@@ -55,26 +77,26 @@
         <tbody>
             @foreach (var app in DataManager.Instance.Queue.Data)
             {
-            <tr>
-                <td>
-                    <label>@app.AppId</label>
-                </td>
-                <td>
-                    <label>@app.Name</label>
-                </td>
-                <td>
-                    <label>@app.QueuedTime</label>
-                </td>
-                <td>
-                    <label>@app.Status</label>
-                </td>
-                <td>
-                    <button class="btn btn-info" onclick="RemoveFromQueue(@app.AppId)">➖</button>
-                    <button class="btn btn-success" onclick="openSteamStore(@app.AppId)">🔗</button>
-                </td>
-            </tr>
+                <tr>
+                    <td>
+                        <label>@app.AppId</label>
+                    </td>
+                    <td>
+                        <label>@app.Name</label>
+                    </td>
+                    <td>
+                        <label>@app.QueuedTime</label>
+                    </td>
+                    <td>
+                        <label>@app.Status</label>
+                    </td>
+                    <td>
+                        <button class="btn btn-info" onclick="RemoveFromQueue(@app.AppId)">➖</button>
+                        <button class="btn btn-success" onclick="openSteamStore(@app.AppId)">🔗</button>
+                    </td>
+                </tr>
             }
         </tbody>
     </table>
-    <textarea style="width:100%;height:520px;background-color:InactiveCaption" readonly="readonly">@DataManager.Instance.SteamWrapper.CurrentOutput</textarea>
+
 </div>

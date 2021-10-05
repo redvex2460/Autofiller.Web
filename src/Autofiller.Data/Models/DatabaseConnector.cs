@@ -11,8 +11,8 @@ namespace Autofiller.Data.Models
         #region Private Fields
 
         private static DatabaseConnector instance;
-        private string _filename;
-        private SqliteConnection _sqliteConnection;
+        private readonly string _filename;
+        private readonly SqliteConnection _sqliteConnection;
 
         #endregion Private Fields
 

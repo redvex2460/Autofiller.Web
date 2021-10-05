@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Autofiller.Data
 {
@@ -10,15 +11,17 @@ namespace Autofiller.Data
         public static T StartProcess<T>(string processName, string arguments, string Workfolder = "")
         {
             var result = "";
-            Process process = new Process();
-            process.StartInfo = new ProcessStartInfo()
+            Process process = new Process
             {
-                Arguments = arguments,
-                CreateNoWindow = true,
-                FileName = processName,
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true
+                StartInfo = new ProcessStartInfo()
+                {
+                    Arguments = arguments,
+                    CreateNoWindow = true,
+                    FileName = processName,
+                    RedirectStandardError = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true
+                }
             };
             if (Workfolder != "")
                 process.StartInfo.WorkingDirectory = Workfolder;
@@ -36,7 +39,21 @@ namespace Autofiller.Data
             {
                 return (T)Convert.ChangeType(result, typeof(T));
             }
-            return default(T);
+            return default;
+        }
+
+        public static async Task<List<Tsource>> ToListAsync<Tsource>(this IEnumerable<Tsource> data)
+        {
+            List<Tsource> result = new List<Tsource>();
+            await Task.Run(() =>
+            {
+                foreach(var d in data)
+                {
+                    result.Add(d);
+                }
+                return;
+            });
+            return result;
         }
     }
 }

@@ -9,12 +9,6 @@ namespace Autofiller.Data.Steam
 {
     public class SteamCommand
     {
-        #region Private Fields
-
-        private object _file;
-
-        #endregion Private Fields
-
         #region Public Properties
 
         public string Arguments { get; set; }
@@ -23,6 +17,10 @@ namespace Autofiller.Data.Steam
         public SteamPlatforms? Platform { get; set; } = null;
         public Process Process { get; set; }
         public bool Result { get; set; }
+        public bool IsRunning { get; private set; }
+
+        public delegate void MessageReadHandler(string message);
+        public event MessageReadHandler MessageRead;
 
         #endregion Public Properties
 
@@ -44,24 +42,27 @@ namespace Autofiller.Data.Steam
 
         public SteamCommand Execute(TimeSpan? timeout = null, TimeSpan? idleTimeout = null)
         {
+            IsRunning = true;
             AddArgument("quit");
             timeout = timeout != null ? timeout : TimeSpan.FromMinutes(240);
             idleTimeout = idleTimeout != null ? idleTimeout : TimeSpan.FromMinutes(6);
 
-            Process = new Process();
-            Process.StartInfo = new ProcessStartInfo()
+            Process = new Process
             {
-                Arguments = $"{Arguments} {Arguments}",
-                CreateNoWindow = true,
-                FileName = DataManager.Instance.SteamWrapper.ScriptPath,
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                WorkingDirectory = DataManager.Instance.SteamWrapper.ScriptDirectory
+                StartInfo = new ProcessStartInfo()
+                {
+                    Arguments = $"{DataManager.Instance.SteamWrapper.ScriptPath} {Arguments} {Arguments}",
+                    CreateNoWindow = true,
+                    FileName = "unbuffer",
+                    RedirectStandardError = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    WorkingDirectory = DataManager.Instance.SteamWrapper.ScriptDirectory
+                }
             };
-            Process.OutputDataReceived += (object sender, DataReceivedEventArgs message) => { DataManager.Instance.SteamWrapper.CurrentOutput += $"{message.Data}\n"; };
-            Process.ErrorDataReceived += (object sender, DataReceivedEventArgs message) => { DataManager.Instance.SteamWrapper.CurrentOutput += $"{message.Data}\n"; };
+            Process.OutputDataReceived += (object sender, DataReceivedEventArgs message) => { MessageRead?.Invoke(message.Data); Console.WriteLine(message.Data); };
+            Process.ErrorDataReceived += (object sender, DataReceivedEventArgs message) => { MessageRead?.Invoke(message.Data); Console.WriteLine(message.Data); };
             Process.Start();
             Process.BeginOutputReadLine();
             Process.BeginErrorReadLine();
@@ -71,6 +72,7 @@ namespace Autofiller.Data.Steam
                 Thread.Sleep(500);
             }
             Result = Process.ExitCode == 0;
+            IsRunning = false;
             return this;
         }
 
@@ -132,7 +134,11 @@ namespace Autofiller.Data.Steam
             AddArgument("app_update", appId.ToString());
             return this;
         }
-
+        public SteamCommand Kill()
+        {
+            Process.Kill(true);
+            return this;
+        }
         #endregion Public Methods
     }
 }
