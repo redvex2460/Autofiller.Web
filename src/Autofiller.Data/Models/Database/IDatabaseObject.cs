@@ -8,6 +8,6 @@ namespace Autofiller.Data.Models.Database
     {
         public string Table { get; }
 
-        public void Update(string value);
+        public void Update();
     }
 }

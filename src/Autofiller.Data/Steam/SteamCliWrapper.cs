@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -143,7 +144,7 @@ namespace Autofiller.Data.Steam
         private Task Download()
         {
             CurrentOutput += CheckAuthorisedUsers().message;
-            foreach (var app in DataManager.Queue.Data)
+            foreach (var app in DataManager.Queue.Data.Where(item => item.Status == DownloadStatus.Queued).ToList())
             {
                 foreach (var user in DataManager.AuthorisedUsers.Data)
                 {
@@ -151,7 +152,7 @@ namespace Autofiller.Data.Steam
 
                     var steamCommand = SteamCommand.Init()
                                        .Login(user.UserName)
-                                       .SetPlatform((SteamPlatforms)Enum.Parse(typeof(SteamPlatforms), app.Platform))
+                                       .SetPlatform(Enum.Parse<SteamPlatforms>(app.Platform))
                                        .SetDirectory(DataManager.Settings.DownloadDirectory)
                                        .Update(app.AppId)
                                        .Execute();
@@ -163,7 +164,8 @@ namespace Autofiller.Data.Steam
                     }
 
                     CurrentOutput += "Download finished\n";
-                    DataManager.Queue.Data.Find(item => item.AppId == app.AppId).Status = "Completed";
+                    DataManager.Queue.Data.Find(item => item.AppId == app.AppId).Status = DownloadStatus.Completed;
+                    DataManager.Queue.Data.Find(item => item.AppId == app.AppId).Update();
                     DeleteDownloadedFiles();
                 }
             }

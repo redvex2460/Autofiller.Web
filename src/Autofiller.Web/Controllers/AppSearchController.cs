@@ -42,8 +42,7 @@ namespace Autofiller.Web.Controllers
                     dataManager.Apps.Data.Find(app => app.AppId == appid).Name,
                     "windows",
                     DateTime.Now,
-                    appid,
-                    "Queued");
+                    appid);
 
                 dataManager.Queue.Add(app);
 

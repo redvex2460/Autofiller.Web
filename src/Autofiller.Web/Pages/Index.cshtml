@@ -45,6 +45,9 @@
                     Queued Time
                 </td>
                 <td>
+                    Status
+                </td>
+                <td>
                     Actions
                 </td>
             </tr>
@@ -52,21 +55,24 @@
         <tbody>
             @foreach (var app in DataManager.Instance.Queue.Data)
             {
-                <tr>
-                    <td>
-                        <label>@app.AppId</label>
-                    </td>
-                    <td>
-                        <label>@app.Name</label>
-                    </td>
-                    <td>
-                        <label>@app.QueuedTime</label>
-                    </td>
-                    <td>
-                        <button class="btn btn-info" onclick="RemoveFromQueue(@app.AppId)">➖</button>
-                        <button class="btn btn-success" onclick="openSteamStore(@app.AppId)">🔗</button>
-                    </td>
-                </tr>
+            <tr>
+                <td>
+                    <label>@app.AppId</label>
+                </td>
+                <td>
+                    <label>@app.Name</label>
+                </td>
+                <td>
+                    <label>@app.QueuedTime</label>
+                </td>
+                <td>
+                    <label>@app.Status</label>
+                </td>
+                <td>
+                    <button class="btn btn-info" onclick="RemoveFromQueue(@app.AppId)">➖</button>
+                    <button class="btn btn-success" onclick="openSteamStore(@app.AppId)">🔗</button>
+                </td>
+            </tr>
             }
         </tbody>
     </table>

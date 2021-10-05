@@ -17,7 +17,7 @@
 
         public string Table => "Steam_Apps";
 
-        public void Update(string value)
+        public void Update()
         {
             throw new System.NotImplementedException();
         }

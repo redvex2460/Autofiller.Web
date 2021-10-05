@@ -22,7 +22,8 @@ namespace Autofiller.Data.Models.Database
 
         public void SaveToDatabase()
         {
-            DatabaseConnector.ExecuteQuery($"DELETE FROM {Table}");
+            DatabaseConnector.Command().OpenDatabase().SelectTable(Table).ClearTable().AddObject(this).Execute();
+            /*DatabaseConnector.ExecuteQuery($"DELETE FROM {Table}");
             DatabaseConnector.SqliteConnection.Open();
             using (var transaction = DatabaseConnector.SqliteConnection.BeginTransaction())
             {
@@ -46,7 +47,7 @@ namespace Autofiller.Data.Models.Database
                 command.ExecuteNonQuery();
                 transaction.Commit();
             }
-            DatabaseConnector.SqliteConnection.Close();
+            DatabaseConnector.SqliteConnection.Close();*/
         }
     }
 }

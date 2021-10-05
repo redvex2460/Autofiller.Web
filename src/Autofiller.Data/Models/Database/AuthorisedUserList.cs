@@ -37,29 +37,8 @@ namespace Autofiller.Data.Models.Database
 
         public void SaveToDatabase()
         {
-            DatabaseConnector.ExecuteQuery($"DELETE FROM {Table}");
-            DatabaseConnector.SqliteConnection.Open();
-            using (var transaction = DatabaseConnector.SqliteConnection.BeginTransaction())
-            {
-                var command = DatabaseConnector.SqliteConnection.CreateCommand();
-                command.CommandText =
-                @$"
-                    INSERT INTO {Table}
-                    VALUES ($name)
-                ";
 
-                var nameParameter = command.CreateParameter();
-                nameParameter.ParameterName = "name";
-                command.Parameters.Add(nameParameter);
-
-                foreach (var app in Data)
-                {
-                    nameParameter.Value = app.UserName;
-                    command.ExecuteNonQuery();
-                }
-                transaction.Commit();
-            }
-            DatabaseConnector.SqliteConnection.Close();
+            DatabaseConnector.Command().OpenDatabase().SelectTable(Table).SaveTable(Data).Execute();
         }
     }
 }

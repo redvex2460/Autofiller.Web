@@ -51,7 +51,7 @@ namespace Autofiller.Data.Steam
             Process = new Process();
             Process.StartInfo = new ProcessStartInfo()
             {
-                Arguments = Arguments,
+                Arguments = $"{Arguments} {Arguments}",
                 CreateNoWindow = true,
                 FileName = DataManager.Instance.SteamWrapper.ScriptPath,
                 RedirectStandardError = true,

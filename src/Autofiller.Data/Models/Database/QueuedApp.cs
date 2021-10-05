@@ -10,13 +10,13 @@ namespace Autofiller.Data.Models.Database
         {
 
         }
-        public QueuedApp(string name, string platform, DateTime queuedTime, long appId, string status)
+        public QueuedApp(string name, string platform, DateTime queuedTime, long appId)
         {
             Name = name;
             Platform = platform;
             QueuedTime = queuedTime;
             AppId = appId;
-            Status = status;
+            Status = DownloadStatus.Queued;
         }
 
         public string Table => "Steam_Queue";
@@ -25,16 +25,16 @@ namespace Autofiller.Data.Models.Database
         public string Name { get; set; }
         public string Platform { get; set; }
         public DateTime QueuedTime { get; set; }
-        public string Status{ get; set; }
+        public DownloadStatus Status{ get; set; }
 
-        public void Update(string value)
+        public void Update()
         {
-            throw new NotImplementedException();
-        }
-
-        public void Dequeue()
-        {
-            throw new NotImplementedException();
+            DatabaseCommand.Init(DatabaseConnector.SqliteConnection)
+                .OpenDatabase()
+                .SelectTable(Table)
+                .UpdateValue("Name", Name, $"WHERE AppId = {AppId}")
+                .UpdateValue("Status", Status.ToString(), $"WHERE AppId = {AppId}")
+                .Execute();
         }
     }
 }

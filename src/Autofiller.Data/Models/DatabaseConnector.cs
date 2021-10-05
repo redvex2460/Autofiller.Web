@@ -55,7 +55,7 @@ namespace Autofiller.Data.Models
                 {
                     properties.Add($"{property.Name} INTEGER");
                 }
-                if (property.PropertyType == typeof(string) || property.PropertyType == typeof(DateTime))
+                if (property.PropertyType == typeof(string) || property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(SteamPlatforms) || property.PropertyType == typeof(DownloadStatus))
                 {
                     properties.Add($"{property.Name} VARCHAR");
                 }
@@ -121,6 +121,11 @@ namespace Autofiller.Data.Models
             dataManager.Queue.LoadFromDatabase();
             dataManager.AuthorisedUsers.LoadFromDatabase();
             Console.WriteLine("Done..");
+        }
+
+        public static DatabaseCommand Command()
+        {
+            return DatabaseCommand.Init(SqliteConnection);
         }
 
         #endregion Public Methods

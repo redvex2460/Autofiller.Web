@@ -11,7 +11,7 @@ namespace Autofiller.Data.Models.Database
 
         public string Table => "Steam_Accounts";
 
-        public void Update(string value)
+        public void Update()
         {
             throw new NotImplementedException();
         }

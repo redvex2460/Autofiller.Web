@@ -42,7 +42,7 @@ namespace Autofiller.Data.Models.Database
                     Name = (string)entry["Name"],
                     Platform = (string)entry["Platform"],
                     QueuedTime = DateTime.Parse((string)entry["QueuedTime"]),
-                    Status = (string)entry["Status"]
+                    Status = Enum.Parse<DownloadStatus>((string)entry["Status"])
                 });
             }
             return;
@@ -50,50 +50,7 @@ namespace Autofiller.Data.Models.Database
 
         public void SaveToDatabase()
         {
-            DatabaseConnector.ExecuteQuery($"DELETE FROM {Table}");
-            DatabaseConnector.SqliteConnection.Open();
-            using (var transaction = DatabaseConnector.SqliteConnection.BeginTransaction())
-            {
-                var command = DatabaseConnector.SqliteConnection.CreateCommand();
-                command.CommandText =
-                @$"
-                    INSERT INTO {Table}
-                    VALUES ($appid, $name, $platform, $queuedtime, $status)
-
-                ";
-
-                var appIdParameter = command.CreateParameter();
-                appIdParameter.ParameterName = "appid";
-                command.Parameters.Add(appIdParameter);
-
-                var nameParameter = command.CreateParameter();
-                nameParameter.ParameterName = "name";
-                command.Parameters.Add(nameParameter);
-
-                var platformParameter = command.CreateParameter();
-                platformParameter.ParameterName = "platform";
-                command.Parameters.Add(platformParameter);
-
-                var queuedTimeParameter = command.CreateParameter();
-                queuedTimeParameter.ParameterName = "queuedtime";
-                command.Parameters.Add(queuedTimeParameter);
-
-                var statusParameter = command.CreateParameter();
-                statusParameter.ParameterName = "status";
-                command.Parameters.Add(statusParameter);
-
-                foreach (var app in Data)
-                {
-                    appIdParameter.Value = app.AppId;
-                    nameParameter.Value = app.Name;
-                    platformParameter.Value = app.Platform;
-                    queuedTimeParameter.Value = app.QueuedTime;
-                    statusParameter.Value = app.Status;
-                    command.ExecuteNonQuery();
-                }
-                transaction.Commit();
-            }
-            DatabaseConnector.SqliteConnection.Close();
+            DatabaseConnector.Command().OpenDatabase().SelectTable(Table).SaveTable(Data).Execute();
         }
     }
 }

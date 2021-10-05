@@ -12,47 +12,17 @@ namespace Autofiller.Data.Models.Database
 
         public void LoadFromDatabase()
         {
-            var result = DatabaseConnector.GetRows($"SELECT * FROM {Table}");
-            foreach(var entry in result)
-            {
-                var appId = (long)entry["AppId"];
-                var appName = (string)entry["Name"];
-                var app = new App(appId, appName);
-                Data.Add(app);
-            }
+            Data = DatabaseCommand.Init(DatabaseConnector.SqliteConnection)
+                .OpenDatabase()
+                .GetObjects<App>($"SELECT * FROM {Table}")
+                .Execute()
+                .Result as List<App>;
             return;
         }
 
         public void SaveToDatabase()
         {
-            DatabaseConnector.ExecuteQuery($"DELETE FROM {Table}");
-            DatabaseConnector.SqliteConnection.Open();
-            using (var transaction = DatabaseConnector.SqliteConnection.BeginTransaction())
-            {
-                var command = DatabaseConnector.SqliteConnection.CreateCommand();
-                command.CommandText =
-                @$"
-                    INSERT INTO {Table}
-                    VALUES ($appid, $name)
-                ";
-
-                var appIdParameter = command.CreateParameter();
-                appIdParameter.ParameterName = "$appid";
-                command.Parameters.Add(appIdParameter);
-
-                var nameParameter = command.CreateParameter();
-                nameParameter.ParameterName = "name";
-                command.Parameters.Add(nameParameter);
-
-                foreach(var app in Data)
-                {
-                    appIdParameter.Value = app.AppId;
-                    nameParameter.Value = app.Name;
-                    command.ExecuteNonQuery();
-                }
-                transaction.Commit();
-            }
-            DatabaseConnector.SqliteConnection.Close();
+            DatabaseConnector.Command().OpenDatabase().SelectTable(Table).SaveTable(Data).Execute();
         }
     }
 }
