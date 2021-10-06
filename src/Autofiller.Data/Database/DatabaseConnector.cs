@@ -1,10 +1,10 @@
-﻿using Autofiller.Data.Models.Database;
+﻿using Autofiller.Data.Commands;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Autofiller.Data.Models
+namespace Autofiller.Data.Database
 {
     public class DatabaseConnector
     {
@@ -113,7 +113,8 @@ namespace Autofiller.Data.Models
                 CreateTableForObject(typeof(AuthorisedUser));
                 CreateTableForObject(typeof(App));
                 Console.WriteLine("Getting AppList From Steam");
-                dataManager.SteamWrapper.GetApps(true);
+                var command = new GetSteamAppsCommand(true);
+                command.Execute();
                 Console.WriteLine("Done..");
             }
             dataManager.Apps.LoadFromDatabase();

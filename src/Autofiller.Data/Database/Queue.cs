@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Autofiller.Data.Models.Database
+namespace Autofiller.Data.Database
 {
     public class Queue : IDatabaseTable<List<QueuedApp>>
     {

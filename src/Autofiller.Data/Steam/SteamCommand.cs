@@ -1,4 +1,4 @@
-﻿using Autofiller.Data.Models;
+﻿using Autofiller.Data;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -10,7 +10,7 @@ namespace Autofiller.Data.Steam
     public class SteamCommand
     {
         #region Public Properties
-
+        DataManager DataManager => DataManager.GetInstance();
         public string Arguments { get; set; }
         public string InstallDir { get; set; } = null;
         public string Output { get; set; }
@@ -51,14 +51,14 @@ namespace Autofiller.Data.Steam
             {
                 StartInfo = new ProcessStartInfo()
                 {
-                    Arguments = $"{DataManager.Instance.SteamWrapper.ScriptPath} {Arguments} {Arguments}",
+                    Arguments = $"{DataManager.ScriptPath} {Arguments}",
                     CreateNoWindow = true,
                     FileName = "unbuffer",
                     RedirectStandardError = true,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     UseShellExecute = false,
-                    WorkingDirectory = DataManager.Instance.SteamWrapper.ScriptDirectory
+                    WorkingDirectory = DataManager.ScriptDirectory
                 }
             };
             Process.OutputDataReceived += (object sender, DataReceivedEventArgs message) => { MessageRead?.Invoke(message.Data); Console.WriteLine(message.Data); };
@@ -82,20 +82,23 @@ namespace Autofiller.Data.Steam
             string _folder = Path.Combine(Directory.GetCurrentDirectory(), "steam");
             string _file = Path.Combine(_folder, "steam.tar.gz");
 
-            var webClient = new WebClient();
             if (!Directory.Exists(_folder))
+            {
                 Directory.CreateDirectory(_folder);
-            webClient.DownloadFile(url, _file);
-            var succeeded = Utils.StartProcess<bool>("tar", $"zxvf {_file}", _folder);
-            File.Delete(_file);
-            if (succeeded)
-            {
-                Console.WriteLine("Successfully SteamCMD inizialised");
-            }
-            else
-            {
-                Console.WriteLine("Error inizialing SteamCMD");
-                Environment.Exit(1);
+                var webClient = new WebClient();
+                webClient.DownloadFile(url, _file);
+                var succeeded = Utils.StartProcess<bool>("tar", $"zxvf {_file}", _folder);
+                File.Delete(_file);
+                if (succeeded)
+                {
+                    Console.WriteLine("Successfully SteamCMD inizialised");
+                    return Login("anonymous").Execute();
+                }
+                else
+                {
+                    Console.WriteLine("Error inizialing SteamCMD");
+                    Environment.Exit(1);
+                }
             }
             return this;
         }
@@ -127,7 +130,7 @@ namespace Autofiller.Data.Steam
         public SteamCommand Update(long appId)
         {
             if (InstallDir == null)
-                SetDirectory(DataManager.Instance.Settings.DownloadDirectory);
+                SetDirectory(DataManager.Settings.DownloadDirectory);
             if (Platform == null)
                 SetPlatform(SteamPlatforms.windows);
             AddArgument("app_license_request", appId.ToString());

@@ -1,4 +1,5 @@
-﻿using Autofiller.Data.Models;
+﻿using Autofiller.Data;
+using Autofiller.Data.Commands;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ namespace Autofiller.Web.Controllers
 {
     public class HomeController : Controller
     {
-        DataManager DataManager => DataManager.Instance;
+        DataManager DataManager => DataManager.GetInstance();
         public IActionResult Index()
         {
             return View();
@@ -42,17 +43,20 @@ namespace Autofiller.Web.Controllers
         }
 
         [HttpPost]
-        public JsonResult StartDownload()
+        public JsonResult StartStopDownload()
         {
-            return Json(new { message = DataManager.Instance.SteamWrapper.StartDownload() });
+            if(DataManager.IsDownloading)
+                return Json(new { message = new StopDownloadCommand().Execute().Result });
+            else
+                return Json(new { message = new StartDownloadCommand().Execute().Result });
         }
 
         public JsonResult GetDownloadProgress()
         {
-            var dlmgr = DataManager.SteamWrapper.DownloadManager;
-            if (dlmgr == null)
+            if(DataManager.DownloadManager == null || DataManager.DownloadManager.Status == null)
                 return Json(new { game = "", action = "", progress = 0 });
-            return Json(new { game = dlmgr.Game, action = dlmgr.Action, progress = dlmgr.Progress });
+            var dlmgr = DataManager.DownloadManager.Status;
+            return Json(new { game = dlmgr.Game, action = dlmgr.Action, progress = dlmgr.Progress, current = dlmgr.CurrentBit, max = dlmgr.MaximumBit, speed = dlmgr.DownloadSpeed });
         }
     }
 }

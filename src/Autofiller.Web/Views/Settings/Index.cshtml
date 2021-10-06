@@ -1,7 +1,7 @@
 ﻿@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
-@using Autofiller.Data.Models;
+@using Autofiller.Data;
 @{
 }
 
@@ -81,7 +81,7 @@
             <tr>
                 <td>DownloadPath</td>
                 <td>
-                    <input type="text" name="DownloadPath" value="@DataManager.Instance.Settings.DownloadDirectory" class="form-control"/>
+                    <input type="text" name="DownloadPath" value="@DataManager.GetInstance().Settings.DownloadDirectory" class="form-control"/>
                     <button class="btn btn-info form-control">Save</button>
                 </td>
             </tr>

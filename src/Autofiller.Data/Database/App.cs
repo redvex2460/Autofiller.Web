@@ -1,4 +1,4 @@
-﻿namespace Autofiller.Data.Models.Database
+﻿namespace Autofiller.Data.Database
 {
     public class App : IDatabaseObject
     {

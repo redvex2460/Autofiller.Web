@@ -1,5 +1,4 @@
 ﻿using Autofiller.Data;
-using Autofiller.Data.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,7 @@ namespace Autofiller.Web.Controllers
 {
     public class AppSearchController : Controller
     {
-        private DataManager DataManager => DataManager.Instance;
+        private DataManager DataManager => DataManager.GetInstance();
         public IActionResult Index()
         {
             return View();
@@ -39,7 +38,7 @@ namespace Autofiller.Web.Controllers
             }
             else
             {
-                var app = new Data.Models.Database.QueuedApp(
+                var app = new Data.Database.QueuedApp(
                     DataManager.Apps.Data.Find(app => app.AppId == appid).Name,
                     "windows",
                     DateTime.Now,

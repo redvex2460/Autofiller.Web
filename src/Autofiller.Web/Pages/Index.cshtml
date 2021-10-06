@@ -1,5 +1,5 @@
 ﻿@page
-@using Autofiller.Data.Models;
+@using Autofiller.Data;
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
@@ -36,9 +36,16 @@
                 Action: "GET",
                 success: function (response) {
                     var progressbar = document.getElementById("DownloadBar");
-                    progressbar.setAttribute("aria-valuenow", response.progress);
-                    progressbar.style.width = response.progress+"%";
-                    progressbar.innerHTML = `${response.action} ${response.game}: ${response.progress}`;
+                    if (response.game == "") {
+                        progressbar.setAttribute("aria-valuenow", "0");
+                        progressbar.style.width = "0%";
+                        progressbar.innerHTML = "";
+                    }
+                    else {
+                        progressbar.setAttribute("aria-valuenow", response.progress);
+                        progressbar.style.width = response.progress + "%";
+                        progressbar.innerHTML = `${response.action} ${response.game}: ${response.progress}% (${response.speed}MB/s)`;
+                    }
                 }
             })
         }
@@ -51,8 +58,8 @@
     <h1>
         Current Queue:
     </h1>
-    <div class="progress">
-        <div class="progress-bar" role="progressbar" id="DownloadBar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+    <div class="progress" style="height: 40px; text-shadow: 3px 1px 3px black; color: floralwhite; font-weight: bolder;">
+        <div class="progress-bar" role="progressbar" id="DownloadBar" style="width: 25%; text-shadow: 3px 1px 3px black; color: floralwhite; font-weight: bolder;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
     </div>
     <table class="table table-striped">
         <thead>
@@ -75,7 +82,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var app in DataManager.Instance.Queue.Data)
+            @foreach (var app in DataManager.GetInstance().Queue.Data)
             {
                 <tr>
                     <td>

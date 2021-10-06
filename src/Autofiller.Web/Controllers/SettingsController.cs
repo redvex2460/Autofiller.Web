@@ -1,4 +1,4 @@
-﻿using Autofiller.Data.Models;
+﻿using Autofiller.Data;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ namespace Autofiller.Web.Controllers
 {
     public class SettingsController : Controller
     {
+        DataManager DataManager => DataManager.GetInstance();
         public IActionResult Index()
         {
             return View();
@@ -16,8 +17,8 @@ namespace Autofiller.Web.Controllers
 
         public JsonResult AuthenticateUser(string username, string password, string guard)
         {
-            var success = DataManager.Instance.SteamWrapper.Login(username, password, guard);
-            var msg = "";
+            var success = DataManager.Login(username, password, guard);
+            string msg;
             if (success)
                 msg = $"{username} successfully signed in.";
             else

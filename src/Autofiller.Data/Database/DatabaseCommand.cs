@@ -1,10 +1,10 @@
-﻿using Autofiller.Data.Models.Database;
+﻿using Autofiller.Data.Database;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Autofiller.Data.Models
+namespace Autofiller.Data.Database
 {
     public class DatabaseCommand
     {
@@ -36,16 +36,6 @@ namespace Autofiller.Data.Models
         public static DatabaseCommand Init(SqliteConnection connection)
         {
             return new DatabaseCommand(connection);
-        }
-
-        public DatabaseCommand GetQueryStringForTable<IDatabaseTable>(IDatabaseTable database)
-        {
-            return this;
-        }
-        public DatabaseCommand GetQueryStringForTable<Tsource>(IDatabaseTable<Tsource> database) 
-        {
-
-            return this;
         }
 
         public DatabaseCommand AddObject<T>(T obj)

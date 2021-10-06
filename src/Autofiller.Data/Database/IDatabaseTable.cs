@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Autofiller.Data.Models.Database
+namespace Autofiller.Data.Database
 {
     public interface IDatabaseTable
     {

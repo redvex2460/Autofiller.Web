@@ -2,7 +2,7 @@
 
 FROM ubuntu:18.04 AS base
 RUN apt update -y && \
-	apt install -y lib32gcc1 wget && \
+	apt install -y lib32gcc1 wget expect && \
 	wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && dpkg -i packages-microsoft-prod.deb && rm packages-microsoft-prod.deb && \
 	apt update -y && \
 	apt install -y aspnetcore-runtime-5.0 aspnetcore-runtime-3.1
